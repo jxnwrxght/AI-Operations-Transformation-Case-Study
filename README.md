@@ -22,6 +22,12 @@ Rather than trying to automate all five areas immediately, I selected **document
 
 The goal was to start with a contained use case where AI could handle repetitive first-pass work while keeping a human involved in validation.
 
+## Current-State Workflow
+
+The current-state map shows the existing renewal intake process, including manual handoffs, decision points, and the five main operational bottlenecks identified during the analysis.
+
+![Northstar Advisory current-state renewal intake workflow](./assets/current-state-workflow.jpg)
+
 ## Pilot 01
 
 When renewal documents arrive, the AI system:
@@ -33,6 +39,12 @@ Low-confidence classifications are sent to the Account Coordinator for review.
 During the pilot, the Account Coordinator also validates every AI-generated intake result. Any incorrect classifications or completeness decisions are corrected and logged.
 
 This allows the team to measure the system's accuracy before deciding whether high-confidence cases should eventually move forward without manual review.
+
+## Future-State Workflow
+
+The proposed future-state workflow introduces AI-assisted document classification and completeness detection while keeping the Account Coordinator in the loop for validation and exception handling during the pilot.
+
+![Northstar Advisory future-state renewal intake workflow](./assets/future-state-workflow.jpg)
 
 ## Measuring Success
 
@@ -63,7 +75,7 @@ Additional opportunities could then be evaluated, including automated data extra
 
 - [Business Brief](./01-business-brief.md)
 - [Stakeholder Discovery](./02-stakeholder-discovery.md)
-- Current-State Workflow — coming next
-- Future-State Workflow — coming next
+- [Current-State Workflow](./assets/current-state-workflow.jpg)
+- [Future-State Workflow](./assets/future-state-workflow.jpg)
 - n8n Prototype — coming next
 - Loom Demo — coming next
