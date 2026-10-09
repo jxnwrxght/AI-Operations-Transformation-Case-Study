@@ -77,5 +77,5 @@ Additional opportunities could then be evaluated, including automated data extra
 - [Stakeholder Discovery](./02-stakeholder-discovery.md)
 - [Current-State Workflow](./assets/current-state-workflow.jpg)
 - [Future-State Workflow](./assets/future-state-workflow.jpg)
-- n8n Prototype — coming next
+- [n8n Prototype Workflow](./n8n/renewal-intake-workflow.json) — working prototype covering classification, confidence routing, completeness checks, and human-review paths
 - Loom Demo — coming next
