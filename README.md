@@ -46,6 +46,12 @@ The proposed future-state workflow introduces AI-assisted document classificatio
 
 ![Northstar Advisory future-state renewal intake workflow](./assets/future-state-workflow.jpg)
 
+## n8n Prototype
+
+The prototype implements the Pilot 01 logic in n8n, including AI-assisted document classification, confidence-based routing, completeness checks, and human-review paths.
+
+![Northstar n8n renewal intake workflow](./assets/n8n-workflow.jpg)
+
 ## Measuring Success
 
 Before the pilot, baseline measurements would include:
