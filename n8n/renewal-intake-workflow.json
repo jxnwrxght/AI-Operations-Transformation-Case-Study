@@ -1,0 +1,516 @@
+{
+  "name": "Northstar Renewal Intake - Pilot 01",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6ada4621-c511-4646-b61b-237f31fb2fc0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed247f04-54e6-48cb-a49c-4c4066f56de5",
+              "name": "client_name",
+              "value": "Acme Manufacturing",
+              "type": "string"
+            },
+            {
+              "id": "7ef8253d-e32a-4ee0-8f72-03974cc6197f",
+              "name": "renewal_id",
+              "value": "REN-001",
+              "type": "string"
+            },
+            {
+              "id": "5ad584ef-e87a-42f9-a8a0-e6f5a7a48810",
+              "name": "document_1",
+              "value": "2025 Renewal Application for Acme Manufacturing",
+              "type": "string"
+            },
+            {
+              "id": "ff796882-dae4-4ea4-a2e6-dc357f115435",
+              "name": "document_2",
+              "value": "Loss Runs Report - policy years 2023-2025",
+              "type": "string"
+            },
+            {
+              "id": "ee04d5e7-f2e9-49f1-a493-8597c1854e16",
+              "name": "document_3",
+              "value": "Commercial Auto Vehicle Schedule - 12 vehicles",
+              "type": "string"
+            },
+            {
+              "id": "d77dd41f-83eb-48b5-a903-fcf37a00b9b3",
+              "name": "required_documents",
+              "value": "Renewal Application, Loss Runs Report, Payroll Report, Vehicle Schedule",
+              "type": "string"
+            },
+            {
+              "id": "cdba7181-2ab4-4fa2-b70b-f54ac5fd5781",
+              "name": "document_4",
+              "value": "Payroll Report - 2025 Estimated Payroll Summary",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "033365ae-5701-472a-af53-928e0ea16fdd",
+      "name": "Sample Renewal Package"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.6-luna",
+          "mode": "list",
+          "cachedResultName": "GPT-5.6-LUNA"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are reviewing an insurance renewal intake package.\n\nClassify each submitted document into one of these categories:\n\n- Renewal Application\n- Loss Runs Report\n- Payroll Report\n- Vehicle Schedule\n- Other / Unknown\n\nSubmitted documents:\n\nDocument 1:\n{{ $json.document_1 }}\n\nDocument 2:\n{{ $json.document_2 }}\n\nDocument 3:\n{{ $json.document_3 }}\n\nDocument 4:\n{{ $json.document_4 }}\n\nFor each document, return:\n1. The document number\n2. The classification\n3. A confidence score from 0 to 100\n\nReturn ONLY valid JSON in this exact structure:\n\n{\n  \"documents\": [\n    {\n      \"document\": \"document_1\",\n      \"classification\": \"Renewal Application\",\n      \"confidence\": 95\n    },\n    {\n      \"document\": \"document_2\",\n      \"classification\": \"Loss Runs Report\",\n      \"confidence\": 95\n    },\n    {\n      \"document\": \"document_3\",\n      \"classification\": \"Vehicle Schedule\",\n      \"confidence\": 95\n    },\n    {\n      \"document\": \"document_4\",\n      \"classification\": \"Payroll Report\",\n      \"confidence\": 95\n    }\n  ]\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "3db11af7-1205-4843-ba8e-ded76ff89e3e",
+      "name": "AI - Classify Documents"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.output[0].content[0].text;\n\nreturn [\n  {\n    json: JSON.parse(text)\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "7c5294a7-2aa1-4dc2-b96f-3cdf4ad55fbd",
+      "name": "Parse Classification Results"
+    },
+    {
+      "parameters": {
+        "jsCode": "const documents = $json.documents;\n\nconst threshold = 90;\nconst lowestConfidence = Math.min(...documents.map(doc => doc.confidence));\nconst needsReview = documents.some(doc => doc.confidence < threshold);\n\nreturn [\n  {\n    json: {\n      documents,\n      confidence_threshold: threshold,\n      lowest_confidence: lowestConfidence,\n      needs_human_review: needsReview\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "769f1953-5140-4ae9-b30a-086962359d4a",
+      "name": "Evaluate Classification Confidence"
+    },
+    {
+      "parameters": {
+        "jsCode": "const documents = $json.documents;\n\n// Pull the required document list from the original sample package\nconst requiredDocuments = $('Sample Renewal Package')\n  .first()\n  .json.required_documents\n  .split(',')\n  .map(doc => doc.trim());\n\n// Get the document types AI says we received\nconst receivedDocuments = documents.map(doc => doc.classification);\n\n// Find anything required that wasn't received\nconst missingDocuments = requiredDocuments.filter(\n  required => !receivedDocuments.includes(required)\n);\n\nreturn [\n  {\n    json: {\n      ...$json,\n      required_documents: requiredDocuments,\n      received_documents: receivedDocuments,\n      missing_documents: missingDocuments,\n      package_complete: missingDocuments.length === 0\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        96
+      ],
+      "id": "1b3c81a5-5326-465a-9db8-56321d2c4e72",
+      "name": "Check Package Completeness"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "19d0b2f5-a4de-447d-9b1a-acbfba4d17c7",
+              "leftValue": "={{ $json.package_complete }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1616,
+        96
+      ],
+      "id": "7fd3307d-291d-4f26-a2fa-9c18f540f4dd",
+      "name": "Package Complete?"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5.6-luna",
+          "mode": "list",
+          "cachedResultName": "GPT-5.6-LUNA"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Draft a short, professional email requesting missing renewal documents from a client.\n\nClient:\n{{ $('Sample Renewal Package').first().json.client_name }}\n\nMissing documents:\n{{ $json.missing_documents.join(', ') }}\n\nThe email should:\n- clearly state which document(s) are missing\n- ask the client to send them so the renewal intake can continue\n- be polite and concise\n- not invent any deadlines, names, or details\n\nReturn only the email draft."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1840,
+        192
+      ],
+      "id": "0a4b6ac7-6288-4508-b50a-5558a302018a",
+      "name": "AI - Draft Missing Document Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4aaa5669-0b5a-4996-8f1b-387b1d752910",
+              "name": "client_name",
+              "value": "={{ $('Sample Renewal Package').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "25e6a167-ad62-4e35-9d49-6fcb929f6f55",
+              "name": "renewal_id",
+              "value": "={{ $('Sample Renewal Package').first().json.renewal_id }}",
+              "type": "string"
+            },
+            {
+              "id": "34f1923c-7d01-4339-a2f3-9557b6ad58bb",
+              "name": "missing_documents",
+              "value": "={{ $('Check Package Completeness').first().json.missing_documents.join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "09da3299-650f-43e6-9c40-352a867716fd",
+              "name": "email_draft",
+              "value": "={{ $json.output[0].content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "f2ba6804-55a6-460d-aa3a-67e4c7ad6fb4",
+              "name": "review_status",
+              "value": "Pending human approval",
+              "type": "string"
+            },
+            {
+              "id": "1ab9bfdc-33f6-42a6-b72e-91a672f1211c",
+              "name": "next_action",
+              "value": "Account Coordinator reviews draft before sending",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2208,
+        192
+      ],
+      "id": "831384a2-8010-4050-a2a7-8ad35ae4ac25",
+      "name": "Queue for Human Review"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e7632ed4-5ced-41c9-9da3-ff16196f6166",
+              "name": "client_name",
+              "value": "={{ $('Sample Renewal Package').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "c21d4d6d-649c-4bc9-ba15-8f5ba11111e3",
+              "name": "renewal_id",
+              "value": "={{ $('Sample Renewal Package').first().json.renewal_id }}",
+              "type": "string"
+            },
+            {
+              "id": "3a5b2ebf-26bc-47ae-86a9-5e138a8cdfa2",
+              "name": "received_documents",
+              "value": "={{ $('Check Package Completeness').first().json.received_documents.join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "ddf1897e-2ade-439d-a254-72db0db75def",
+              "name": "package_status",
+              "value": "Complete",
+              "type": "string"
+            },
+            {
+              "id": "da8b6a2a-989a-44fd-9ea1-9932a7e5f02a",
+              "name": "review_status",
+              "value": "Pending human validation",
+              "type": "string"
+            },
+            {
+              "id": "648b328b-806e-4d86-95ce-53ff4e2667e3",
+              "name": "next_action",
+              "value": "Account Coordinator validates intake result",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1840,
+        0
+      ],
+      "id": "a84020d8-60bf-486d-a3d6-8ec876c4ffa3",
+      "name": "Queue Complete Package for Validation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a149ac52-9cf2-4d70-b9c2-3d227596f1ad",
+              "leftValue": "={{ $json.needs_human_review }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        0
+      ],
+      "id": "9e1088d1-9028-4c33-860f-97c7f202bc3a",
+      "name": "Needs Human Review?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "35648737-546e-4401-b35e-7f6b8e0c9827",
+              "name": "client_name",
+              "value": "={{ $('Sample Renewal Package').first().json.client_name }}",
+              "type": "string"
+            },
+            {
+              "id": "cae06ff2-5017-4c3d-8cd7-040b481cc6a9",
+              "name": "renewal_id",
+              "value": "={{ $('Sample Renewal Package').first().json.renewal_id }}",
+              "type": "string"
+            },
+            {
+              "id": "c1f479ed-4452-4acf-90cd-59bb6285a5cd",
+              "name": "lowest_confidence",
+              "value": "={{ $json.lowest_confidence }}",
+              "type": "string"
+            },
+            {
+              "id": "e2d6478c-891e-422e-bd4a-31dc2acec473",
+              "name": "confidence_threshold",
+              "value": "={{ $json.confidence_threshold }}",
+              "type": "string"
+            },
+            {
+              "id": "5cc888fb-35e5-4f21-8e8d-4ec401aab54b",
+              "name": "review_status",
+              "value": "Classification review required",
+              "type": "string"
+            },
+            {
+              "id": "8ebe250f-c4e6-4915-afe5-0f91b381f332",
+              "name": "next_action",
+              "value": "Account Coordinator reviews and corrects classification",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1392,
+        -96
+      ],
+      "id": "514c8415-d353-4420-bb5c-2e44908e5398",
+      "name": "Queue Classification Review"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Sample Renewal Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Renewal Package": {
+      "main": [
+        [
+          {
+            "node": "AI - Classify Documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI - Classify Documents": {
+      "main": [
+        [
+          {
+            "node": "Parse Classification Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Classification Results": {
+      "main": [
+        [
+          {
+            "node": "Evaluate Classification Confidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluate Classification Confidence": {
+      "main": [
+        [
+          {
+            "node": "Needs Human Review?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Package Completeness": {
+      "main": [
+        [
+          {
+            "node": "Package Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Package Complete?": {
+      "main": [
+        [
+          {
+            "node": "Queue Complete Package for Validation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI - Draft Missing Document Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI - Draft Missing Document Request": {
+      "main": [
+        [
+          {
+            "node": "Queue for Human Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Human Review?": {
+      "main": [
+        [
+          {
+            "node": "Queue Classification Review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Package Completeness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "nodeGroups": [],
+  "tags": []
+}
