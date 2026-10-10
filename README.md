@@ -64,7 +64,19 @@ The prototype implements the Pilot 01 logic in n8n, including AI-assisted docume
 - **Missing Payroll Report:** The run reached `Queue for Human Review`. Output identified `Payroll Report` in `missing_documents` and drafted a request for it. An initial run appended the literal text `review_status` to the email draft. After correcting the live field, a repeat run showed `Payroll Report` as missing and an email draft without that stray text.
 - **Forced low-confidence routing:** With the threshold temporarily raised to 101, the run reached `Queue Classification Review` and displayed lowest confidence 99 and threshold 101. This confirms the branch routing under a forced threshold; it does not establish calibration or natural low-confidence detection. The live threshold was subsequently restored to 90.
 
-**Test screenshots (cropped to the n8n output):** [Complete package](./evidence/complete-package.png) · [Missing document](./evidence/missing-document.png) · [Forced low confidence](./evidence/forced-low-confidence.png). The missing-document screenshot shows the corrected repeat run.
+**Test screenshots (cropped to the n8n output):**
+
+Complete package:
+
+![Complete package output showing all four document categories and pending human validation](./evidence/complete-package.png)
+
+Missing Payroll Report, corrected repeat run:
+
+![Missing-document output showing Payroll Report and the corrected email draft](./evidence/missing-document.png)
+
+Forced low-confidence routing:
+
+![Classification review output with confidence 99 and temporary threshold 101](./evidence/forced-low-confidence.png)
 
 **Verification status:** The live threshold was restored to 90 and the sample Payroll Report value was restored after testing. These screenshots demonstrate branch routing and selected output fields, but do not establish measured accuracy or time savings. The repository workflow export has a clean email expression.
 
