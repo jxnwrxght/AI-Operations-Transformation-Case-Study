@@ -58,7 +58,13 @@ The prototype implements the Pilot 01 logic in n8n, including AI-assisted docume
 
 **Limits:** Northstar Advisory is fictional, and the inputs are sample text descriptions rather than uploaded PDFs. The workflow does not connect to a live inbox, document store, BrokerCore, or an operational approval queue; its final nodes mark items for human review in the workflow output. The model's confidence score is self-reported and has not been calibrated against labeled examples. No classification accuracy, completeness accuracy, handling-time reduction, or return on investment has been measured. Any time savings remain a hypothesis until the pilot paths are run and compared with a manual baseline.
 
-**Verification still needed:** Run and capture the complete-package, missing-document, and low-confidence paths in n8n; review the outputs and email draft; correct any failures; then add measured observations here. The repository export alone cannot establish successful execution.
+**Observed manual tests (October 10, 2026):**
+
+- **Complete package:** The run reached `Queue Complete Package for Validation`. Output listed all four required document categories, `package_status: Complete`, and `review_status: Pending human validation`.
+- **Missing Payroll Report:** The run reached `Queue for Human Review`. Output identified `Payroll Report` in `missing_documents` and drafted a request for it. The live n8n node also appended the literal text `review_status` to the email draft, so the draft needs correction before this branch is considered clean.
+- **Forced low-confidence routing:** With the threshold temporarily raised to 101, the run reached `Queue Classification Review` and displayed lowest confidence 99 and threshold 101. This confirms the branch routing under a forced threshold; it does not establish calibration or natural low-confidence detection. Restore the live threshold to 90 after the test.
+
+**Remaining verification:** Remove the stray `review_status` text from the live n8n `Queue for Human Review` email field and rerun the missing-document test. Confirm the live threshold is restored to 90. These screenshots demonstrate branch routing and selected output fields, but do not establish measured accuracy or time savings. The repository workflow export already has a clean email expression; the live n8n version needs to be brought into sync.
 
 ## Measuring Success
 
