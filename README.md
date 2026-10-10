@@ -54,7 +54,7 @@ The prototype implements the Pilot 01 logic in n8n, including AI-assisted docume
 
 ## Prototype Result and Limits
 
-**Result so far:** The n8n prototype implements the proposed pilot flow using a manually entered sample renewal package. It classifies four document descriptions, checks the reported classification confidence against a 90-point threshold, compares classifications with the required-document list, and routes complete, incomplete, and low-confidence outcomes to distinct review paths. For an incomplete package, it generates a draft request for the missing documents. These are configured workflow capabilities; this repository does not yet contain recorded execution evidence for all branches.
+**Result so far:** The n8n prototype implements the proposed pilot flow using a manually entered sample renewal package. It classifies four document descriptions, checks the reported classification confidence against a 90-point threshold, compares classifications with the required-document list, and routes complete, incomplete, and low-confidence outcomes to distinct review paths. For an incomplete package, it generates a draft request for the missing documents. The observed manual tests and screenshots below document each branch with sample inputs.
 
 **Limits:** Northstar Advisory is fictional, and the inputs are sample text descriptions rather than uploaded PDFs. The workflow does not connect to a live inbox, document store, BrokerCore, or an operational approval queue; its final nodes mark items for human review in the workflow output. The model's confidence score is self-reported and has not been calibrated against labeled examples. No classification accuracy, completeness accuracy, handling-time reduction, or return on investment has been measured. Any time savings remain a hypothesis until the pilot paths are run and compared with a manual baseline.
 
@@ -62,11 +62,11 @@ The prototype implements the Pilot 01 logic in n8n, including AI-assisted docume
 
 - **Complete package:** The run reached `Queue Complete Package for Validation`. Output listed all four required document categories, `package_status: Complete`, and `review_status: Pending human validation`.
 - **Missing Payroll Report:** The run reached `Queue for Human Review`. Output identified `Payroll Report` in `missing_documents` and drafted a request for it. An initial run appended the literal text `review_status` to the email draft. After correcting the live field, a repeat run showed `Payroll Report` as missing and an email draft without that stray text.
-- **Forced low-confidence routing:** With the threshold temporarily raised to 101, the run reached `Queue Classification Review` and displayed lowest confidence 99 and threshold 101. This confirms the branch routing under a forced threshold; it does not establish calibration or natural low-confidence detection. Restore the live threshold to 90 after the test.
+- **Forced low-confidence routing:** With the threshold temporarily raised to 101, the run reached `Queue Classification Review` and displayed lowest confidence 99 and threshold 101. This confirms the branch routing under a forced threshold; it does not establish calibration or natural low-confidence detection. The live threshold was subsequently restored to 90.
 
 **Test screenshots (cropped to the n8n output):** [Complete package](./evidence/complete-package.png) · [Missing document](./evidence/missing-document.png) · [Forced low confidence](./evidence/forced-low-confidence.png). The missing-document screenshot shows the corrected repeat run.
 
-**Remaining verification:** Confirm the live threshold is restored to 90 and the sample Payroll Report value is restored after testing. These screenshots demonstrate branch routing and selected output fields, but do not establish measured accuracy or time savings. The repository workflow export has a clean email expression.
+**Verification status:** The live threshold was restored to 90 and the sample Payroll Report value was restored after testing. These screenshots demonstrate branch routing and selected output fields, but do not establish measured accuracy or time savings. The repository workflow export has a clean email expression.
 
 ## Measuring Success
 
