@@ -52,6 +52,14 @@ The prototype implements the Pilot 01 logic in n8n, including AI-assisted docume
 
 ![Northstar n8n renewal intake workflow](./assets/n8n-workflow.jpg)
 
+## Prototype Result and Limits
+
+**Result so far:** The n8n prototype implements the proposed pilot flow using a manually entered sample renewal package. It classifies four document descriptions, checks the reported classification confidence against a 90-point threshold, compares classifications with the required-document list, and routes complete, incomplete, and low-confidence outcomes to distinct review paths. For an incomplete package, it generates a draft request for the missing documents. These are configured workflow capabilities; this repository does not yet contain recorded execution evidence for all branches.
+
+**Limits:** Northstar Advisory is fictional, and the inputs are sample text descriptions rather than uploaded PDFs. The workflow does not connect to a live inbox, document store, BrokerCore, or an operational approval queue; its final nodes mark items for human review in the workflow output. The model's confidence score is self-reported and has not been calibrated against labeled examples. No classification accuracy, completeness accuracy, handling-time reduction, or return on investment has been measured. Any time savings remain a hypothesis until the pilot paths are run and compared with a manual baseline.
+
+**Verification still needed:** Run and capture the complete-package, missing-document, and low-confidence paths in n8n; review the outputs and email draft; correct any failures; then add measured observations here. The repository export alone cannot establish successful execution.
+
 ## Measuring Success
 
 Before the pilot, baseline measurements would include:
